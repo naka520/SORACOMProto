@@ -2,12 +2,17 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function Camera() {
   const [imageData, setImageData] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
 
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -78,6 +83,10 @@ export default function Camera() {
     // キャンバスから画像データを取得
     const data = canvas.toDataURL("image/jpeg");
     setImageData(data);
+    setImageDimensions({
+      width: canvas.width,
+      height: canvas.height,
+    });
 
     // カメラを停止
     stopCamera();
@@ -153,11 +162,25 @@ export default function Camera() {
       {/* 撮影済み画像の表示 */}
       {imageData ? (
         <div className="mb-6">
-          <img
-            src={imageData}
-            alt="撮影した服"
-            className="max-w-full h-auto rounded-lg"
-          />
+          {/* Next.jsのImage componentを使用 */}
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              maxWidth: "400px",
+              height: "300px",
+            }}
+          >
+            <Image
+              src={imageData}
+              alt="撮影した服"
+              fill
+              style={{ objectFit: "contain" }}
+              sizes="(max-width: 768px) 100vw, 400px"
+              className="rounded-lg"
+              priority
+            />
+          </div>
           <div className="flex mt-4 space-x-4">
             <button
               onClick={retakeImage}
