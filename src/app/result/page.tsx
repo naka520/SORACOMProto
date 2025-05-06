@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 // 診断結果の型定義
 interface DiagnosisResult {
@@ -13,10 +13,9 @@ interface DiagnosisResult {
 
 // Suspenseバウンダリの中で使用するためのコンポーネント
 function ResultContent() {
-  // ここでuseSearchParamsを使用
-  const { useSearchParams } = require("next/navigation");
+  // 標準的なimport構文を使用
   const searchParams = useSearchParams();
-  const id = searchParams.get("id");
+  const id = searchParams?.get("id");
   const router = useRouter();
 
   const [result, setResult] = useState<DiagnosisResult | null>(null);
@@ -77,7 +76,7 @@ function ResultContent() {
     }, 2000); // 2秒ごとに確認
 
     return () => clearInterval(interval);
-  }, [id, retries]);
+  }, [id, retries, router]);
 
   const handleRetry = () => {
     router.push("/camera");
