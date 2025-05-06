@@ -9,10 +9,6 @@ export default function Camera() {
   const [cameraActive, setCameraActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
-  const [imageDimensions, setImageDimensions] = useState({
-    width: 0,
-    height: 0,
-  });
 
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -83,10 +79,6 @@ export default function Camera() {
     // キャンバスから画像データを取得
     const data = canvas.toDataURL("image/jpeg");
     setImageData(data);
-    setImageDimensions({
-      width: canvas.width,
-      height: canvas.height,
-    });
 
     // カメラを停止
     stopCamera();
