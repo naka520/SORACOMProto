@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
 
+// 診断結果の型定義
 interface DiagnosisResult {
   isAppropriate: boolean;
   temperature: number;
@@ -10,10 +11,14 @@ interface DiagnosisResult {
   recommendation: string;
 }
 
-export default function Result() {
+// Suspenseバウンダリの中で使用するためのコンポーネント
+function ResultContent() {
+  // ここでuseSearchParamsを使用
+  const { useSearchParams } = require("next/navigation");
   const searchParams = useSearchParams();
-  const router = useRouter();
   const id = searchParams.get("id");
+  const router = useRouter();
+
   const [result, setResult] = useState<DiagnosisResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -141,5 +146,21 @@ export default function Result() {
         </button>
       </div>
     </div>
+  );
+}
+
+// メインのページコンポーネント
+export default function Result() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex flex-col items-center justify-center p-4">
+          <h1 className="text-2xl font-bold mb-6">読み込み中...</h1>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      }
+    >
+      <ResultContent />
+    </Suspense>
   );
 }
