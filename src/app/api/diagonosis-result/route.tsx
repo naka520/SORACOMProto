@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { diagnosisResults } from "../flux-webhook/route";
+import { getDiagnosisResult } from "../utils/store";
 
 export async function GET(request: NextRequest) {
   // URLからidパラメータを取得
@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: "IDが必要です" }, { status: 400 });
   }
 
-  // 診断結果を取得
-  const result = diagnosisResults.get(id);
+  // 診断結果をユーティリティを使って取得
+  const result = getDiagnosisResult(id);
 
   if (!result) {
     return NextResponse.json(

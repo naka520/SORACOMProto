@@ -1,16 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// 診断結果の型定義
-interface DiagnosisResult {
-  isAppropriate: boolean;
-  temperature: number;
-  weather: string;
-  recommendation: string;
-}
-
-// 診断結果を保存するためのグローバル変数（サーバー再起動時にリセットされる）
-// 本番環境では永続的なストレージ（Redis、DynamoDBなど）を使用することをお勧めします
-const diagnosisResults = new Map<string, DiagnosisResult>();
+import { saveDiagnosisResult, DiagnosisResult } from "../utils/store";
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,8 +16,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 診断結果を一時保存
-    diagnosisResults.set(diagnosisId, result as DiagnosisResult);
+    // 診断結果を保存ユーティリティを使って保存
+    saveDiagnosisResult(diagnosisId, result as DiagnosisResult);
     console.log(`診断結果を保存しました(ID: ${diagnosisId})`);
 
     // Flux側に成功レスポンスを返す
@@ -41,7 +30,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-// 診断結果を別のAPIルートからアクセスできるようにエクスポート
-// この方法はNext.jsのApp Router環境で共有変数を扱う一つのアプローチです
-export { diagnosisResults };
