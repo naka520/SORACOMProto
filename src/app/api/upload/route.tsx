@@ -34,6 +34,15 @@ try {
   });
 }
 
+// エラーインターフェイスを定義して any を避ける
+interface S3Error extends Error {
+  code?: string;
+  $metadata?: {
+    httpStatusCode?: number;
+    requestId?: string;
+  };
+}
+
 export async function POST(request: NextRequest) {
   console.log("API リクエスト受信");
 
@@ -114,35 +123,44 @@ export async function POST(request: NextRequest) {
     console.log("生成された画像URL:", imageUrl);
 
     return NextResponse.json({ imageUrl });
-  } catch (error: any) {
+  } catch (error) {
+    // ErrorをS3Error型にキャスト
+    const s3Error = error as S3Error;
+
     // 詳細なエラー情報をログに出力
     console.error("アップロードエラーの詳細:", {
-      message: error.message,
-      name: error.name,
-      stack: error.stack,
-      code: error.code,
-      statusCode: error.$metadata?.httpStatusCode,
-      requestId: error.$metadata?.requestId,
+      message: s3Error.message,
+      name: s3Error.name,
+      stack: s3Error.stack,
+      code: s3Error.code,
+      statusCode: s3Error.$metadata?.httpStatusCode,
+      requestId: s3Error.$metadata?.requestId,
     });
 
     // エラーの種類に応じたメッセージを返す
     let errorMessage = "アップロードに失敗しました";
-    let statusCode = 500;
+    const statusCode = 500; // let から const に変更
 
     if (
-      error.name === "AccessDeniedException" ||
-      error.code === "AccessDenied"
+      s3Error.name === "AccessDeniedException" ||
+      s3Error.code === "AccessDenied"
     ) {
       errorMessage =
         "S3バケットへのアクセスが拒否されました。IAM権限を確認してください。";
-    } else if (error.name === "NoSuchBucket" || error.code === "NoSuchBucket") {
+    } else if (
+      s3Error.name === "NoSuchBucket" ||
+      s3Error.code === "NoSuchBucket"
+    ) {
       errorMessage = "指定されたS3バケットが存在しません。";
-    } else if (error.name === "TimeoutError" || error.code === "TimeoutError") {
+    } else if (
+      s3Error.name === "TimeoutError" ||
+      s3Error.code === "TimeoutError"
+    ) {
       errorMessage = "S3アップロード中にタイムアウトが発生しました。";
     }
 
     return NextResponse.json(
-      { message: errorMessage, error: error.message },
+      { message: errorMessage, error: s3Error.message },
       { status: statusCode }
     );
   }
