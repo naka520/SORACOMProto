@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     // SORACOM API認証情報のチェック
-    if (!env.SORACOM_AUTH_KEY || !env.SORACOM_AUTH_TOKEN) {
+    if (!process.env.SORACOM_AUTH_KEY || !process.env.SORACOM_AUTH_TOKEN) {
       console.error("SORACOM認証情報が見つかりません");
       return NextResponse.json(
         { message: "サーバー設定エラー: SORACOM認証情報が不足しています" },
@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = env.SORACOM_AUTH_KEY;
-    const token = env.SORACOM_AUTH_TOKEN;
+    const apiKey = process.env.SORACOM_AUTH_KEY;
+    const token = process.env.SORACOM_AUTH_TOKEN;
 
     // ファイルをArrayBufferに変換
     const fileBuffer = await file.arrayBuffer();
