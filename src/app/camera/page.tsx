@@ -90,7 +90,7 @@ export default function Camera() {
     initCamera();
   };
 
-  // 画像をS3にアップロードしてSORACOM Fluxを起動
+  // 画像をHarvest Fileにアップロードして診断開始
   const handleDiagnose = async () => {
     if (!imageData) return;
 
@@ -104,7 +104,7 @@ export default function Camera() {
       const formData = new FormData();
       formData.append("file", blob, "capture.jpg");
 
-      // 1. S3にアップロード
+      // 1. Harvest Fileにアップロード
       const uploadResponse = await fetch("/api/upload", {
         method: "POST",
         body: formData,
@@ -114,7 +114,7 @@ export default function Camera() {
         throw new Error("アップロードに失敗しました");
       }
 
-      const { imageUrl } = await uploadResponse.json();
+      const { fileName, tags } = await uploadResponse.json();
 
       // 2. SORACOM Fluxにトリガー送信
       const triggerResponse = await fetch("/api/trigger-flux", {
@@ -122,7 +122,7 @@ export default function Camera() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ imageUrl }),
+        body: JSON.stringify({ fileName, tags }),
       });
 
       if (!triggerResponse.ok) {

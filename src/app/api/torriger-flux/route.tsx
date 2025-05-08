@@ -5,11 +5,11 @@ export async function POST(request: NextRequest) {
   try {
     // リクエストボディを取得
     const body = await request.json();
-    const { imageUrl } = body;
+    const { fileName, tags } = body;
 
-    if (!imageUrl) {
+    if (!fileName) {
       return NextResponse.json(
-        { message: "画像URLが必要です" },
+        { message: "ファイル名が必要です" },
         { status: 400 }
       );
     }
@@ -25,7 +25,8 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         diagnosisId,
-        imageUrl,
+        fileName,
+        tags,
         callbackUrl: `${process.env.NEXT_PUBLIC_API_URL}/api/flux-webhook`,
         timestamp: new Date().toISOString(),
       }),
