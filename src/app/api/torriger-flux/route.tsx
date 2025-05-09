@@ -6,13 +6,13 @@ export async function POST(request: NextRequest) {
     // リクエストボディを取得
     const body = await request.json();
     const { fileName, tags } = body;
-
     if (!fileName) {
       return NextResponse.json(
         { message: "ファイル名が必要です" },
         { status: 400 }
       );
     }
+    const fileUrl = `https://api.soracom.io/v1/files/${fileName}`;
 
     // 診断IDを生成
     const diagnosisId = uuidv4();
@@ -25,9 +25,11 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         diagnosisId,
-        fileName,
-        tags,
-        callbackUrl: `${process.env.NEXT_PUBLIC_API_URL}/api/flux-webhook`,
+        content: {
+          filePath: fileUrl, // Harvest Fileのファイルパス
+          tags,
+          callbackUrl: `${process.env.NEXT_PUBLIC_API_URL}/api/flux-webhook`,
+        },
         timestamp: new Date().toISOString(),
       }),
     });
