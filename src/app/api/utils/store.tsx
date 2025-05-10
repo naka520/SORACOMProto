@@ -3,7 +3,20 @@
 
 // 診断結果の型定義
 export interface DiagnosisResult {
-  payload: string;
+  output: {
+    shindan: string;
+    recommend: string;
+  };
+  usage: {
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+    model: string;
+    model_id: string;
+    byol: boolean;
+    service: string;
+    credit: number;
+  };
 }
 
 // 診断結果を保存するためのグローバル変数（サーバー再起動時にリセットされる）
@@ -11,14 +24,13 @@ export interface DiagnosisResult {
 const diagnosisResults = new Map<string, DiagnosisResult>();
 
 // 診断結果を保存する関数
-export function saveDiagnosisResult(payload: string): void {
-  // UUIDの生成を削除
-  const id = "static-id"; // 必要に応じて固定値や他の識別子を使用
-  diagnosisResults.set(id, { payload });
+export function saveDiagnosisResult(payload: DiagnosisResult): void {
+  const id = "static-id"; // 固定のIDを使用
+  diagnosisResults.set(id, payload); // JSON形式の診断結果を保存
 }
 
 // 診断結果を取得する関数
 export function getDiagnosisResult(): DiagnosisResult | undefined {
-  // IDが固定値の場合、直接取得
-  return diagnosisResults.get("static-id");
+  const id = "static-id"; // 固定のIDを使用
+  return diagnosisResults.get(id); // 固定IDで診断結果を取得
 }
