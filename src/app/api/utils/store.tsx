@@ -19,18 +19,17 @@ export interface DiagnosisResult {
   };
 }
 
-// 診断結果を保存するためのグローバル変数（サーバー再起動時にリセットされる）
-// 本番環境では永続的なストレージ（Redis、DynamoDBなど）を使用することをお勧めします
-const diagnosisResults = new Map<string, DiagnosisResult>();
+// 診断結果を保存するための変数
+let diagnosisResult: DiagnosisResult | null = null;
 
 // 診断結果を保存する関数
 export function saveDiagnosisResult(payload: DiagnosisResult): void {
-  const id = "static-id"; // 固定のIDを使用
-  diagnosisResults.set(id, payload); // JSON形式の診断結果を保存
+  console.log("診断結果を保存:", payload);
+  diagnosisResult = payload;
 }
 
 // 診断結果を取得する関数
-export function getDiagnosisResult(): DiagnosisResult | undefined {
-  const id = "static-id"; // 固定のIDを使用
-  return diagnosisResults.get(id); // 固定IDで診断結果を取得
+export function getDiagnosisResult(): DiagnosisResult | null {
+  console.log("診断結果を取得:", diagnosisResult);
+  return diagnosisResult;
 }

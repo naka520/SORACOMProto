@@ -21,10 +21,16 @@ function ResultContent() {
   const [result, setResult] = useState<DiagnosisResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [retries, setRetries] = useState(0);
+
+  const handleRetry = () => {
+    // ホーム画面に戻るか、再試行のロジックを実装
+    router.push("/"); // ホーム画面に戻る
+  };
 
   useEffect(() => {
     if (!id) return;
+
+    let retries = 0;
 
     const fetchResult = async () => {
       try {
@@ -32,8 +38,8 @@ function ResultContent() {
 
         if (!response.ok) {
           if (response.status === 404) {
-            // 結果がまだない場合は再試行タイマーを続ける
-            return;
+            // 結果がまだない場合は再試行
+            return false;
           }
           throw new Error(`エラー: ${response.status}`);
         }
@@ -42,8 +48,7 @@ function ResultContent() {
         if (data && Object.keys(data).length > 0) {
           setResult(data);
           setLoading(false);
-          // 結果が取得できたらポーリングを停止
-          return true;
+          return true; // 結果が取得できたらポーリングを停止
         }
       } catch (error) {
         console.error("結果取得エラー:", error);
@@ -54,33 +59,25 @@ function ResultContent() {
       return false;
     };
 
-    // 初回実行
-    fetchResult();
-
-    // ポーリングで結果を取得（SORACOM Fluxの処理完了を待つ）
-    const interval = setInterval(async () => {
+    const poll = async () => {
       const done = await fetchResult();
-      if (done) {
-        clearInterval(interval);
-      } else {
-        // リトライ回数を更新
-        setRetries(prev => prev + 1);
-
-        // 30回（約60秒）経ってもデータがない場合はタイムアウト
+      if (!done) {
+        retries += 1;
         if (retries > 30) {
           setError("診断結果の取得がタイムアウトしました。");
           setLoading(false);
-          clearInterval(interval);
+          return;
         }
+        setTimeout(poll, 2000); // 2秒後に再試行
       }
-    }, 2000); // 2秒ごとに確認
+    };
 
-    return () => clearInterval(interval);
-  }, [id, retries, router]);
+    poll();
 
-  const handleRetry = () => {
-    router.push("/camera");
-  };
+    return () => {
+      retries = 0; // クリーンアップ
+    };
+  }, [id]);
 
   if (loading) {
     return (
