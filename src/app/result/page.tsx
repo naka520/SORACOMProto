@@ -28,8 +28,6 @@ function ResultContent() {
   };
 
   useEffect(() => {
-    if (!id) return;
-
     let retries = 0;
 
     const fetchResult = async () => {
@@ -77,7 +75,7 @@ function ResultContent() {
     return () => {
       retries = 0; // クリーンアップ
     };
-  }, [id]);
+  });
 
   if (loading) {
     return (
