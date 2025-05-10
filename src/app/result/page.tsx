@@ -15,7 +15,6 @@ interface DiagnosisResult {
 function ResultContent() {
   // 標準的なimport構文を使用
   const searchParams = useSearchParams();
-  const id = searchParams?.get("id");
   const router = useRouter();
 
   const [result, setResult] = useState<DiagnosisResult | null>(null);
