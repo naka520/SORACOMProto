@@ -3,6 +3,11 @@ import { saveDiagnosisResult } from "../utils/store"; // payload全体を保存�
 
 export async function POST(request: NextRequest) {
   try {
+    // リクエストヘッダーをログに出力
+    console.log(
+      "Webhookリクエストヘッダー:",
+      JSON.stringify(Object.fromEntries(request.headers), null, 2)
+    );
     // WebhookからのJSONボディを取得
     const payload = await request.json();
     console.log("SORACOM Fluxからのwebhookを受信:", payload);
