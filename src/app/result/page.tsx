@@ -5,10 +5,20 @@ import { useRouter } from "next/navigation";
 
 // 診断結果の型定義
 interface DiagnosisResult {
-  isAppropriate: boolean;
-  temperature: number;
-  weather: string;
-  recommendation: string;
+  output: {
+    shindan: string;
+    recommend: string;
+  };
+  usage: {
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+    model: string;
+    model_id: string;
+    byol: boolean;
+    service: string;
+    credit: number;
+  };
 }
 
 // Suspenseバウンダリの中で使用するためのコンポーネント
@@ -112,22 +122,9 @@ function ResultContent() {
       <h1 className="text-2xl font-bold mb-6">診断結果</h1>
 
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <div
-          className={`text-xl font-bold mb-4 ${
-            result.isAppropriate ? "text-green-600" : "text-red-600"
-          }`}
-        >
-          {result.isAppropriate ? "適温です！" : "温度調節が必要です"}
-        </div>
-
         <div className="mb-4">
-          <p>現在の気温: {result.temperature}°C</p>
-          <p>天気: {result.weather}</p>
-        </div>
-
-        <div className="mb-6">
-          <h2 className="font-bold mb-2">アドバイス</h2>
-          <p>{result.recommendation}</p>
+          <p>服装解析: {result.output.shindan}°C</p>
+          <p>リコメンド内容: {result.output.recommend}</p>
         </div>
 
         <button
