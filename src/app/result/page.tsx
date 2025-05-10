@@ -21,9 +21,32 @@ interface DiagnosisResult {
   };
 }
 
+// こうぺんちゃん風イラスト（SVG）
+function KoupenSVG() {
+  return (
+    <svg width="80" height="80" viewBox="0 0 120 120">
+      <ellipse
+        cx="60"
+        cy="70"
+        rx="42"
+        ry="40"
+        fill="#fff"
+        stroke="#bbb"
+        strokeWidth="3"
+      />
+      <ellipse cx="60" cy="60" rx="38" ry="38" fill="#f6f6f6" />
+      <ellipse cx="60" cy="70" rx="30" ry="28" fill="#fff" />
+      <ellipse cx="50" cy="75" rx="4" ry="4" fill="#222" />
+      <ellipse cx="70" cy="75" rx="4" ry="4" fill="#222" />
+      <path d="M54 85 Q60 90 66 85" stroke="#222" strokeWidth="2" fill="none" />
+      <ellipse cx="47" cy="82" rx="3" ry="2" fill="#fbb" opacity="0.7" />
+      <ellipse cx="73" cy="82" rx="3" ry="2" fill="#fbb" opacity="0.7" />
+    </svg>
+  );
+}
+
 // Suspenseバウンダリの中で使用するためのコンポーネント
 function ResultContent() {
-  // 標準的なimport構文を使用
   const router = useRouter();
 
   const [result, setResult] = useState<DiagnosisResult | null>(null);
@@ -31,7 +54,6 @@ function ResultContent() {
   const [error, setError] = useState<string | null>(null);
 
   const handleRetry = () => {
-    // ホーム画面に戻るか、再試行のロジックを実装
     router.push("/"); // ホーム画面に戻る
   };
 
@@ -41,26 +63,23 @@ function ResultContent() {
     const fetchResult = async () => {
       try {
         const response = await fetch(`/api/diagnosis-result`);
-
         if (!response.ok) {
           if (response.status === 404) {
-            // 結果がまだない場合は再試行
             return false;
           }
           throw new Error(`エラー: ${response.status}`);
         }
-
         const data = await response.json();
         if (data && Object.keys(data).length > 0) {
           setResult(data);
           setLoading(false);
-          return true; // 結果が取得できたらポーリングを停止
+          return true;
         }
       } catch (error) {
         console.error("結果取得エラー:", error);
         setError("診断結果の取得中にエラーが発生しました。");
         setLoading(false);
-        return true; // エラー時もポーリングを停止
+        return true;
       }
       return false;
     };
@@ -74,26 +93,31 @@ function ResultContent() {
           setLoading(false);
           return;
         }
-        setTimeout(poll, 2000); // 2秒後に再試行
+        setTimeout(poll, 2000);
       }
     };
 
     poll();
 
     return () => {
-      retries = 0; // クリーンアップ
+      retries = 0;
     };
   }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <h1 className="text-2xl font-bold mb-6">診断中...</h1>
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-blue-100 to-white">
+        <KoupenSVG />
+        <h1 className="text-2xl font-bold mb-4 text-blue-700">診断中だよ〜</h1>
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-          <p className="text-gray-600">SORACOM Fluxで診断中です</p>
+          <p className="text-gray-600">
+            SORACOM Fluxで診断中だよ、ちょっとまっててね～
+          </p>
           <p className="text-sm text-gray-500 mt-2">
-            天気データと写真から最適な服装を判断しています
+            天気データと写真から
+            <br />
+            やさしく診断してるよ〜！
           </p>
         </div>
       </div>
@@ -102,8 +126,9 @@ function ResultContent() {
 
   if (error || !result) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-blue-100 to-white">
+        <KoupenSVG />
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mt-4">
           <h1 className="text-2xl font-bold mb-6 text-red-600">エラー</h1>
           <p className="mb-6">{error || "診断結果が見つかりませんでした"}</p>
           <button
@@ -113,26 +138,36 @@ function ResultContent() {
             もう一度撮影する
           </button>
         </div>
+        <div className="mt-8 text-xs text-gray-400">
+          こうぺんちゃんは、どんなときもあなたの味方だよ〜！
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <h1 className="text-2xl font-bold mb-6">診断結果</h1>
-
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-blue-100 to-white">
+      <KoupenSVG />
+      <h1 className="text-2xl font-bold mb-4 text-blue-700">
+        診断結果だよ〜！
+      </h1>
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <div className="mb-4">
-          <p>服装解析: {result.output.shindan}°C</p>
-          <p>リコメンド内容: {result.output.recommend}</p>
+        <div className="mb-4 text-gray-800 text-center">
+          <span className="font-bold">服装解析：</span>
+          {result.output.shindan}
+          <br />
+          <span className="font-bold">おすすめ：</span>
+          {result.output.recommend}
         </div>
-
         <button
           onClick={() => router.push("/")}
-          className="bg-blue-500 text-white px-6 py-3 rounded-lg w-full"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg w-full transition"
         >
           もう一度診断する
         </button>
+      </div>
+      <div className="mt-8 text-xs text-gray-400 text-center">
+        どんな服でも、あなたはすてきだよ〜！
       </div>
     </div>
   );
@@ -143,8 +178,11 @@ export default function Result() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex flex-col items-center justify-center p-4">
-          <h1 className="text-2xl font-bold mb-6">読み込み中...</h1>
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-blue-100 to-white">
+          <KoupenSVG />
+          <h1 className="text-2xl font-bold mb-6 text-blue-700">
+            読み込み中...
+          </h1>
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       }
