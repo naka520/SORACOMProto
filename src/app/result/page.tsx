@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 // 診断結果の型定義
 interface DiagnosisResult {
@@ -14,7 +14,6 @@ interface DiagnosisResult {
 // Suspenseバウンダリの中で使用するためのコンポーネント
 function ResultContent() {
   // 標準的なimport構文を使用
-  const searchParams = useSearchParams();
   const router = useRouter();
 
   const [result, setResult] = useState<DiagnosisResult | null>(null);
