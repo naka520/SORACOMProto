@@ -75,7 +75,7 @@ function ResultContent() {
     return () => {
       retries = 0; // クリーンアップ
     };
-  });
+  }, []);
 
   if (loading) {
     return (
