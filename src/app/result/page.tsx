@@ -115,7 +115,7 @@ function ResultContent() {
             SORACOM Fluxで診断中だよ、ちょっとまっててね～
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            天気データと写真から
+            GPSマルチユニットと写真から
             <br />
             やさしく診断してるよ〜！
           </p>
