@@ -114,8 +114,6 @@ export default function Camera() {
         throw new Error("アップロードに失敗しました");
       }
 
-      const { imageUrl } = await uploadResponse.json();
-
       // 2. SORACOM Fluxにトリガー送信
       const triggerResponse = await fetch("/api/torriger-flux", {
         method: "POST",
