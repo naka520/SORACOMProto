@@ -18,7 +18,7 @@ export function saveDiagnosisResult(payload: string): void {
 }
 
 // 診断結果を取得する関数
-export function getDiagnosisResult(id: string): DiagnosisResult | undefined {
+export function getDiagnosisResult(): DiagnosisResult | undefined {
   // IDが固定値の場合、直接取得
   return diagnosisResults.get("static-id");
 }
