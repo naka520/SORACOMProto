@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { v4 as uuidv4 } from "uuid";
-
 // 環境変数の存在確認をログに出力
 console.log("環境変数確認:", {
   region: process.env.AWS_REGION,
