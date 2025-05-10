@@ -5,12 +5,17 @@ export async function POST(request: NextRequest) {
     // リクエストボディをそのまま取得
     const body = await request.json();
 
-    // SORACOM Flux Incoming WebhookにそのままPOST
+    // SORACOM Flux Incoming WebhookにPOST
     const webhookUrl = process.env.SORACOM_FLUX_WEBHOOK_URL!;
+    const apiKey = process.env.X_SORACOM_API_KEY!;
+    const token = process.env.X_SORACOM_TOKEN!;
+
     const response = await fetch(webhookUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-Soracom-API-Key": apiKey,
+        "X-Soracom-Token": token,
       },
       body: JSON.stringify(body),
     });

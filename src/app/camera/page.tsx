@@ -117,12 +117,12 @@ export default function Camera() {
       const { imageUrl } = await uploadResponse.json();
 
       // 2. SORACOM Fluxにトリガー送信
-      const triggerResponse = await fetch("/api/trigger-flux", {
+      const triggerResponse = await fetch("/api/torriger-flux", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ imageUrl }),
+        body: JSON.stringify({}), // 空のリクエストボディ
       });
 
       if (!triggerResponse.ok) {
