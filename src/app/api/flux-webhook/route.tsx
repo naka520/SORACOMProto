@@ -1,26 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { saveDiagnosisResult, DiagnosisResult } from "../utils/store";
+import { saveDiagnosisResult } from "../utils/store"; // payload全体を保存するようにしてね
 
 export async function POST(request: NextRequest) {
   try {
-    // FLUXからのWebhookデータを取得
-    const body = await request.json();
-    console.log("SORACOM Fluxからのwebhookを受信:", body);
+    // WebhookからのJSONボディを取得
+    const payload = await request.json();
+    console.log("SORACOM Fluxからのwebhookを受信:", payload);
 
-    const { diagnosisId, result } = body;
+    // ペイロード全体をそのまま保存
+    saveDiagnosisResult(payload);
 
-    if (!diagnosisId || !result) {
-      return NextResponse.json(
-        { message: "無効なリクエストボディ" },
-        { status: 400 }
-      );
-    }
+    console.log("診断データを保存しました");
 
-    // 診断結果を保存ユーティリティを使って保存
-    saveDiagnosisResult(diagnosisId, result as DiagnosisResult);
-    console.log(`診断結果を保存しました(ID: ${diagnosisId})`);
-
-    // Flux側に成功レスポンスを返す
+    // 成功レスポンス
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Webhookエラー:", error);

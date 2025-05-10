@@ -3,10 +3,7 @@
 
 // 診断結果の型定義
 export interface DiagnosisResult {
-  isAppropriate: boolean;
-  temperature: number;
-  weather: string;
-  recommendation: string;
+  payload: string;
 }
 
 // 診断結果を保存するためのグローバル変数（サーバー再起動時にリセットされる）
@@ -14,8 +11,9 @@ export interface DiagnosisResult {
 const diagnosisResults = new Map<string, DiagnosisResult>();
 
 // 診断結果を保存する関数
-export function saveDiagnosisResult(id: string, result: DiagnosisResult): void {
-  diagnosisResults.set(id, result);
+export function saveDiagnosisResult(payload: string): void {
+  const id = crypto.randomUUID(); // 一意のIDを生成
+  diagnosisResults.set(id, { payload }); // キーと値を指定して保存
 }
 
 // 診断結果を取得する関数
