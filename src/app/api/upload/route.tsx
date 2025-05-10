@@ -1,15 +1,73 @@
 import { NextRequest, NextResponse } from "next/server";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { v4 as uuidv4 } from "uuid";
+
+// 環境変数の存在確認をログに出力
+console.log("環境変数確認:", {
+  region: process.env.AWS_REGION,
+  bucket: process.env.S3_BUCKET_NAME,
+  hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
+  hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
+});
+
+// S3クライアントの型を明示的に定義
+let s3Client: S3Client;
+
+try {
+  s3Client = new S3Client({
+    region: process.env.AWS_REGION || "ap-northeast-1",
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    },
+  });
+  console.log("S3クライアント初期化完了");
+} catch (initError) {
+  console.error("S3クライアント初期化エラー:", initError);
+  // 初期化失敗時にもクライアントを作成（エラー時の型問題を解決）
+  s3Client = new S3Client({
+    region: "ap-northeast-1",
+    credentials: {
+      accessKeyId: "",
+      secretAccessKey: "",
+    },
+  });
+}
+
+// エラーインターフェイスを定義して any を避ける
+interface S3Error extends Error {
+  code?: string;
+  $metadata?: {
+    httpStatusCode?: number;
+    requestId?: string;
+  };
+}
 
 export async function POST(request: NextRequest) {
-  console.log("=== アップロードAPI開始 ===");
+  console.log("API リクエスト受信");
+
+  // 環境変数チェック
+  if (
+    !process.env.AWS_ACCESS_KEY_ID ||
+    !process.env.AWS_SECRET_ACCESS_KEY ||
+    !process.env.S3_BUCKET_NAME
+  ) {
+    console.error("必要な環境変数が設定されていません");
+    return NextResponse.json(
+      { message: "サーバー設定エラー: 環境変数が不足しています" },
+      { status: 500 }
+    );
+  }
+
   try {
     // フォームデータを取得
+    console.log("フォームデータ取得開始");
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
-    console.log("ファイル情報:", {
-      exists: !!file,
-      type: file?.type,
-      size: file?.size,
+    console.log("フォームデータ取得完了", {
+      hasFile: !!file,
+      fileType: file?.type,
+      fileSize: file?.size,
     });
 
     if (!file) {
@@ -19,89 +77,89 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // SORACOM API認証情報のチェック
-    if (!process.env.SORACOM_AUTH_KEY || !process.env.SORACOM_AUTH_TOKEN) {
-      console.error("SORACOM認証情報が見つかりません");
+    // ファイルサイズチェック
+    if (file.size > 4 * 1024 * 1024) {
+      // 4MBの制限
       return NextResponse.json(
-        { message: "サーバー設定エラー: SORACOM認証情報が不足しています" },
-        { status: 500 }
+        { message: "ファイルサイズが大きすぎます（最大4MB）" },
+        { status: 400 }
       );
     }
-
-    const apiKey = process.env.SORACOM_AUTH_KEY;
-    const token = process.env.SORACOM_AUTH_TOKEN;
 
     // ファイルをArrayBufferに変換
+    console.log("ファイルバッファ変換開始");
     const fileBuffer = await file.arrayBuffer();
-    console.log("ファイルバッファ:", {
-      byteLength: fileBuffer.byteLength,
+    console.log("ファイルバッファ変換完了", {
+      bufferSize: fileBuffer.byteLength,
     });
 
-    const fileName = `private/sample/image.jpg`;
-    console.log("ファイル名:", fileName);
+    // ユニークなファイル名を生成
+    const fileName = "image.jpg";
+    console.log("生成されたファイル名:", fileName);
 
-    // SORACOM Harvest Fileにアップロード
-    const uploadUrl = `https://api.soracom.io/v1/files/${fileName}`;
-    console.log("アップロードURL:", uploadUrl);
-
-    console.log("アップロード開始...");
-    const uploadResponse = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: {
-        "X-Soracom-API-Key": apiKey,
-        "X-Soracom-Token": token,
-        "Content-Type": file.type || "image/jpeg",
-      },
-      body: Buffer.from(fileBuffer),
+    // S3にアップロード
+    console.log("S3アップロード開始");
+    const uploadParams = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: fileName,
+      Body: Buffer.from(fileBuffer),
+      ContentType: file.type || "image/jpeg",
+    };
+    console.log("アップロードパラメータ:", {
+      bucket: uploadParams.Bucket,
+      key: uploadParams.Key,
+      contentType: uploadParams.ContentType,
+      bodySize: fileBuffer.byteLength,
     });
 
-    console.log("レスポンス受信:", {
-      status: uploadResponse.status,
-      statusText: uploadResponse.statusText,
-      ok: uploadResponse.ok,
+    const uploadCommand = new PutObjectCommand(uploadParams);
+    await s3Client.send(uploadCommand);
+    console.log("S3アップロード完了");
+
+    // 画像のURLを生成して返す
+    const imageUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+    console.log("生成された画像URL:", imageUrl);
+
+    return NextResponse.json({ imageUrl });
+  } catch (error) {
+    // ErrorをS3Error型にキャスト
+    const s3Error = error as S3Error;
+
+    // 詳細なエラー情報をログに出力
+    console.error("アップロードエラーの詳細:", {
+      message: s3Error.message,
+      name: s3Error.name,
+      stack: s3Error.stack,
+      code: s3Error.code,
+      statusCode: s3Error.$metadata?.httpStatusCode,
+      requestId: s3Error.$metadata?.requestId,
     });
 
-    if (!uploadResponse.ok) {
-      const errorText = await uploadResponse
-        .text()
-        .catch(() => "レスポンステキスト取得エラー");
-      console.error("アップロードエラー詳細:", {
-        status: uploadResponse.status,
-        statusText: uploadResponse.statusText,
-        errorText,
-      });
+    // エラーの種類に応じたメッセージを返す
+    let errorMessage = "アップロードに失敗しました";
+    const statusCode = 500; // let から const に変更
 
-      return NextResponse.json(
-        {
-          message: "Harvest Fileへのアップロードに失敗しました",
-          status: uploadResponse.status,
-          statusText: uploadResponse.statusText,
-          errorDetails: errorText,
-        },
-        { status: 500 }
-      );
+    if (
+      s3Error.name === "AccessDeniedException" ||
+      s3Error.code === "AccessDenied"
+    ) {
+      errorMessage =
+        "S3バケットへのアクセスが拒否されました。IAM権限を確認してください。";
+    } else if (
+      s3Error.name === "NoSuchBucket" ||
+      s3Error.code === "NoSuchBucket"
+    ) {
+      errorMessage = "指定されたS3バケットが存在しません。";
+    } else if (
+      s3Error.name === "TimeoutError" ||
+      s3Error.code === "TimeoutError"
+    ) {
+      errorMessage = "S3アップロード中にタイムアウトが発生しました。";
     }
 
-    console.log("アップロード成功!");
-
-    // タグを設定
-    const tags = {
-      category: "clothes",
-      type: file.type || "image/jpeg",
-    };
-
-    // ファイル名とタグを返す
-    return NextResponse.json({
-      fileName,
-      tags,
-    });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    console.error("未処理エラー:", error);
     return NextResponse.json(
-      { message: `アップロードに失敗しました: ${errorMessage}` },
-      { status: 500 }
+      { message: errorMessage, error: s3Error.message },
+      { status: statusCode }
     );
   }
 }

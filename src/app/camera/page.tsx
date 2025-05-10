@@ -2,14 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function Camera() {
   const [imageData, setImageData] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
-  const [originalSize, setOriginalSize] = useState<number>(0);
-  const [compressedSize, setCompressedSize] = useState<number>(0);
 
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -60,69 +59,8 @@ export default function Camera() {
     };
   }, []);
 
-  // 画像を圧縮する関数
-  const compressImage = async (
-    base64Image: string,
-    maxWidth = 640,
-    quality = 0.7
-  ): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      // HTMLImageElement を使用（Next.jsのImageとの混同を避けるため）
-      const img = document.createElement("img");
-
-      img.onload = () => {
-        // 元のアスペクト比を維持しながらリサイズ
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxWidth) {
-          height = Math.round(height * (maxWidth / width));
-          width = maxWidth;
-        }
-
-        // キャンバスにリサイズして描画
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          reject(new Error("Canvas context is not available"));
-          return;
-        }
-
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // 圧縮した画像をBase64で取得
-        const compressedBase64 = canvas.toDataURL("image/jpeg", quality);
-
-        // 圧縮前後のサイズを計算（Base64文字列から推定）
-        const originalSizeKB = Math.round((base64Image.length * 3) / 4) / 1024;
-        const compressedSizeKB =
-          Math.round((compressedBase64.length * 3) / 4) / 1024;
-
-        setOriginalSize(originalSizeKB);
-        setCompressedSize(compressedSizeKB);
-
-        console.log(
-          `圧縮: ${originalSizeKB.toFixed(2)}KB → ${compressedSizeKB.toFixed(
-            2
-          )}KB (${((compressedSizeKB / originalSizeKB) * 100).toFixed(1)}%)`
-        );
-
-        resolve(compressedBase64);
-      };
-
-      img.onerror = () => {
-        reject(new Error("Failed to load image"));
-      };
-
-      img.src = base64Image;
-    });
-  };
-
-  // 写真を撮影して圧縮
-  const captureImage = async () => {
+  // 写真を撮影
+  const captureImage = () => {
     if (!videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
@@ -138,18 +76,9 @@ export default function Camera() {
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // キャンバスから元の画像データを取得
-    const originalData = canvas.toDataURL("image/jpeg", 1.0);
-
-    try {
-      // 画像を圧縮 (最大幅640px、品質60%)
-      const compressedData = await compressImage(originalData, 640, 0.6);
-      setImageData(compressedData);
-    } catch (error) {
-      console.error("画像圧縮エラー:", error);
-      // エラー時は元の画像を使用
-      setImageData(originalData);
-    }
+    // キャンバスから画像データを取得
+    const data = canvas.toDataURL("image/jpeg");
+    setImageData(data);
 
     // カメラを停止
     stopCamera();
@@ -158,12 +87,10 @@ export default function Camera() {
   // 撮り直し
   const retakeImage = () => {
     setImageData(null);
-    setOriginalSize(0);
-    setCompressedSize(0);
     initCamera();
   };
 
-  // 画像をHarvest Fileにアップロードして診断開始
+  // 画像をS3にアップロードしてSORACOM Fluxを起動
   const handleDiagnose = async () => {
     if (!imageData) return;
 
@@ -173,15 +100,11 @@ export default function Camera() {
       const response = await fetch(imageData);
       const blob = await response.blob();
 
-      console.log(
-        `アップロードする画像サイズ: ${(blob.size / 1024).toFixed(2)} KB`
-      );
-
       // FormDataを作成してファイルを追加
       const formData = new FormData();
       formData.append("file", blob, "capture.jpg");
 
-      // 1. Harvest Fileにアップロード
+      // 1. S3にアップロード
       const uploadResponse = await fetch("/api/upload", {
         method: "POST",
         body: formData,
@@ -191,7 +114,7 @@ export default function Camera() {
         throw new Error("アップロードに失敗しました");
       }
 
-      const { fileName, tags } = await uploadResponse.json();
+      const { imageUrl } = await uploadResponse.json();
 
       // 2. SORACOM Fluxにトリガー送信
       const triggerResponse = await fetch("/api/trigger-flux", {
@@ -199,7 +122,7 @@ export default function Camera() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ fileName, tags }),
+        body: JSON.stringify({ imageUrl }),
       });
 
       if (!triggerResponse.ok) {
@@ -231,24 +154,25 @@ export default function Camera() {
       {/* 撮影済み画像の表示 */}
       {imageData ? (
         <div className="mb-6">
-          {/* 従来のimg要素を使用 */}
-          <div className="w-full max-w-md overflow-hidden rounded-lg">
-            <img
+          {/* Next.jsのImage componentを使用 */}
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              maxWidth: "400px",
+              height: "300px",
+            }}
+          >
+            <Image
               src={imageData}
               alt="撮影した服"
-              className="w-full object-contain"
-              style={{ maxHeight: "300px" }}
+              fill
+              style={{ objectFit: "contain" }}
+              sizes="(max-width: 768px) 100vw, 400px"
+              className="rounded-lg"
+              priority
             />
           </div>
-
-          {/* 圧縮情報表示 */}
-          {originalSize > 0 && compressedSize > 0 && (
-            <div className="mt-2 text-sm text-gray-600 text-center">
-              {originalSize.toFixed(1)}KB → {compressedSize.toFixed(1)}KB (
-              {((compressedSize / originalSize) * 100).toFixed(0)}%)
-            </div>
-          )}
-
           <div className="flex mt-4 space-x-4">
             <button
               onClick={retakeImage}
