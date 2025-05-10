@@ -28,7 +28,7 @@ function ResultContent() {
 
     const fetchResult = async () => {
       try {
-        const response = await fetch(`/api/diagnosis-result?id=${id}`);
+        const response = await fetch(`/api/diagnosis-result`);
 
         if (!response.ok) {
           if (response.status === 404) {

@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDiagnosisResult } from "../utils/store";
 
-export async function GET(request: NextRequest) {
-  // URLからidパラメータを取得
-  const url = new URL(request.url);
-  const id = url.searchParams.get("id");
+export async function GET() {
+  // 固定のIDを使用
+  const fixedId = "static-id";
 
-  if (!id) {
-    return NextResponse.json({ message: "IDが必要です" }, { status: 400 });
-  }
+  // 固定IDで診断結果を取得
+  const result = getDiagnosisResult(fixedId);
 
-  // 診断結果をユーティリティを使って取得
-  const result = getDiagnosisResult(id);
-
+  // 診断結果が見つからない場合は404エラーを返す
   if (!result) {
     return NextResponse.json(
       { message: "結果が見つかりません" },
@@ -20,5 +16,6 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // 診断結果を返す
   return NextResponse.json(result);
 }

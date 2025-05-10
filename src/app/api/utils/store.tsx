@@ -12,11 +12,13 @@ const diagnosisResults = new Map<string, DiagnosisResult>();
 
 // 診断結果を保存する関数
 export function saveDiagnosisResult(payload: string): void {
-  const id = crypto.randomUUID(); // 一意のIDを生成
-  diagnosisResults.set(id, { payload }); // キーと値を指定して保存
+  // UUIDの生成を削除
+  const id = "static-id"; // 必要に応じて固定値や他の識別子を使用
+  diagnosisResults.set(id, { payload });
 }
 
 // 診断結果を取得する関数
 export function getDiagnosisResult(id: string): DiagnosisResult | undefined {
-  return diagnosisResults.get(id);
+  // IDが固定値の場合、直接取得
+  return diagnosisResults.get("static-id");
 }

@@ -19,13 +19,11 @@ export default function Camera() {
     try {
       if (!videoRef.current) return;
 
-      // カメラへのアクセス許可を要求
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }, // 可能であれば背面カメラを使用
+        video: { facingMode: "environment" },
         audio: false,
       });
 
-      // ビデオ要素にストリームを設定
       videoRef.current.srcObject = stream;
       setCameraActive(true);
       setCameraError(null);
@@ -53,7 +51,6 @@ export default function Camera() {
   useEffect(() => {
     initCamera();
 
-    // コンポーネントがアンマウントされたときにカメラを停止
     return () => {
       stopCamera();
     };
@@ -66,21 +63,17 @@ export default function Camera() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    // キャンバスのサイズをビデオのサイズに合わせる
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    // ビデオの現在のフレームをキャンバスに描画
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // キャンバスから画像データを取得
     const data = canvas.toDataURL("image/jpeg");
     setImageData(data);
 
-    // カメラを停止
     stopCamera();
   };
 
@@ -120,17 +113,15 @@ export default function Camera() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({}), // 空のリクエストボディ
+        body: JSON.stringify({}), // 診断IDを送信しない
       });
 
       if (!triggerResponse.ok) {
         throw new Error("診断の開始に失敗しました");
       }
 
-      const { diagnosisId } = await triggerResponse.json();
-
       // 3. 結果画面に遷移
-      router.push(`/result?id=${diagnosisId}`);
+      router.push(`/result`); // 診断IDなしで遷移
     } catch (error) {
       console.error("診断エラー:", error);
       alert("診断に失敗しました");
@@ -149,10 +140,8 @@ export default function Camera() {
         </div>
       )}
 
-      {/* 撮影済み画像の表示 */}
       {imageData ? (
         <div className="mb-6">
-          {/* Next.jsのImage componentを使用 */}
           <div
             style={{
               position: "relative",
@@ -191,7 +180,6 @@ export default function Camera() {
           </div>
         </div>
       ) : (
-        // カメラプレビューと撮影ボタン
         <div className="mb-6">
           <div className="relative bg-black rounded-lg overflow-hidden">
             <video
@@ -199,7 +187,7 @@ export default function Camera() {
               autoPlay
               playsInline
               className="w-full max-w-md h-auto"
-              style={{ transform: "scaleX(-1)" }} // 自撮りの場合は鏡像表示
+              style={{ transform: "scaleX(-1)" }}
             />
 
             {cameraActive && (
@@ -226,7 +214,6 @@ export default function Camera() {
         </div>
       )}
 
-      {/* 画像データを取得するための非表示のキャンバス */}
       <canvas ref={canvasRef} className="hidden" />
     </div>
   );
