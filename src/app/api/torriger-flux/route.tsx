@@ -1,50 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: NextRequest) {
   try {
-    // リクエストボディを取得
+    // リクエストボディをそのまま取得
     const body = await request.json();
-    const { imageUrl } = body;
 
-    if (!imageUrl) {
-      return NextResponse.json(
-        { message: "画像URLが必要です" },
-        { status: 400 }
-      );
-    }
-
-    // 診断IDを生成
-    const diagnosisId = uuidv4();
-
-    // SORACOM FluxのIncoming Webhookにリクエストを送信
-    const response = await fetch(process.env.SORACOM_FLUX_WEBHOOK_URL!, {
+    // SORACOM Flux Incoming WebhookにそのままPOST
+    const webhookUrl = process.env.SORACOM_FLUX_WEBHOOK_URL!;
+    const response = await fetch(webhookUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        diagnosisId,
-        imageUrl,
-        callbackUrl: `${process.env.NEXT_PUBLIC_API_URL}/api/flux-webhook`,
-        timestamp: new Date().toISOString(),
-      }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
       console.error("SORACOM Flux呼び出しエラー:", errorData);
-      throw new Error(
-        `SORACOM Fluxの呼び出しに失敗しました: ${response.status}`
+      return NextResponse.json(
+        { message: "SORACOM Fluxへの送信に失敗しました" },
+        { status: 500 }
       );
     }
 
-    // Incoming Webhookからのレスポンス
-    const webhookResponse = await response.json();
-    console.log("Webhook レスポンス:", webhookResponse);
-
-    // 診断IDをクライアントに返す
-    return NextResponse.json({ diagnosisId });
+    // 成功レスポンス
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("トリガーエラー:", error);
     return NextResponse.json(
