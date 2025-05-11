@@ -38,7 +38,7 @@ export default function Home() {
       </div>
       {/* やさしいメッセージ */}
       <h1 className="text-2xl font-bold text-blue-700 mb-2">
-        のんびり服装診断へようこそ！
+        快適！服装診断へようこそ！
       </h1>
       <p className="text-lg text-gray-700 mb-6 text-center max-w-md">
         <br />

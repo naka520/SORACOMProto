@@ -21,7 +21,7 @@ interface DiagnosisResult {
   };
 }
 
-// こうぺんちゃん風イラスト（SVG）
+// イラスト（SVG）
 function KoupenSVG() {
   return (
     <svg width="80" height="80" viewBox="0 0 120 120">
@@ -137,9 +137,6 @@ function ResultContent() {
           >
             もう一度撮影する
           </button>
-        </div>
-        <div className="mt-8 text-xs text-gray-400">
-          こうぺんちゃんは、どんなときもあなたの味方だよ〜！
         </div>
       </div>
     );

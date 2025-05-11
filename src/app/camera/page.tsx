@@ -130,7 +130,7 @@ export default function Camera() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-blue-100 to-white">
-      {/* こうぺんちゃん風イラスト */}
+      {/* イラスト */}
       <div className="mb-4">
         <svg width="80" height="80" viewBox="0 0 120 120">
           <ellipse
@@ -210,7 +210,7 @@ export default function Camera() {
             </button>
           </div>
           <div className="mt-4 text-sm text-gray-500">
-            どんな服でも「すてき！」なんだよ～🌟
+            どんな服でも「すてき！」なんだよ🌟
           </div>
         </div>
       ) : (
