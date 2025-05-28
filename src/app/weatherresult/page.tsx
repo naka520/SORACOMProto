@@ -88,7 +88,7 @@ function ResultContent() {
       const done = await fetchResult();
       if (!done) {
         retries += 1;
-        if (retries > 30) {
+        if (retries > 60) {
           setError("診断結果の取得がタイムアウトしました。");
           setLoading(false);
           return;
