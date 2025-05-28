@@ -62,7 +62,7 @@ function ResultContent() {
 
     const fetchResult = async () => {
       try {
-        const response = await fetch(`/api/diagnosis-result`);
+        const response = await fetch(`/api/weather-diagnosis-result`);
         if (!response.ok) {
           if (response.status === 404) {
             return false;
@@ -115,7 +115,7 @@ function ResultContent() {
             SORACOM Fluxで診断中だよ、ちょっとまっててね～
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            GPSマルチユニットと写真から
+            ウェザーニューズのお天気情報と写真から
             <br />
             やさしく診断してるよ〜！
           </p>
@@ -160,7 +160,7 @@ function ResultContent() {
           onClick={() => router.push("/")}
           className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg w-full transition"
         >
-          もう一度診断する
+          もう一度最初から診断する
         </button>
       </div>
       <div className="mt-8 text-xs text-gray-400 text-center">

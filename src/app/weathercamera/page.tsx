@@ -106,7 +106,7 @@ export default function Camera() {
       }
 
       // 2. SORACOM Fluxにトリガー送信
-      const triggerResponse = await fetch("/api/torriger-flux", {
+      const triggerResponse = await fetch("/api/weather-torriger-flux", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
