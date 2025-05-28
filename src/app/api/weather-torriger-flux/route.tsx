@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // SORACOM Flux Incoming WebhookにPOST
-    const webhookUrl = process.env.SORACOM_FLUX_WEBHOOK_URL!;
+    const webhookUrl = process.env.SORACOM_FLUX_WEATHER_WEBHOOK_URL!;
     const apiKey = process.env.X_SORACOM_API_KEY!;
     const token = process.env.X_SORACOM_TOKEN!;
 
