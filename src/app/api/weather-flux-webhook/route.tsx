@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { saveDiagnosisResult } from "../utils/store"; // payload全体を保存するようにしてね
+import { saveWeatherDiagnosisResult } from "../weather-utils/store"; // payload全体を保存するようにしてね
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     console.log("SORACOM Fluxからのwebhookを受信:", payload);
 
     // ペイロード全体をそのまま保存
-    saveDiagnosisResult(payload);
+    saveWeatherDiagnosisResult(payload);
 
     console.log("診断データを保存しました");
 

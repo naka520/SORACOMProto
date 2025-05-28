@@ -23,7 +23,7 @@ export interface DiagnosisResult {
 let diagnosisResult: DiagnosisResult | null = null;
 
 // 診断結果を保存する関数
-export function saveweatherDiagnosisResult(payload: DiagnosisResult): void {
+export function saveWeatherDiagnosisResult(payload: DiagnosisResult): void {
   console.log("診断結果を保存:", payload);
   diagnosisResult = payload;
 }
