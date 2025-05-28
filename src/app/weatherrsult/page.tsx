@@ -162,12 +162,6 @@ function ResultContent() {
         >
           もう一度診断する
         </button>
-        <button
-          onClick={() => router.push("/weathercamera")}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg w-full transition"
-        >
-          ウェザーニューズの天気予報情報から今度は診断してみる
-        </button>
       </div>
       <div className="mt-8 text-xs text-gray-400 text-center">
         どんな服でも、あなたはすてきだよ〜！
